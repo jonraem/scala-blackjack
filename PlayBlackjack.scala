@@ -114,11 +114,11 @@ class Blackjack {
           println("-----------------------------------------")
         }
       } else if (chipsBet > player.chips){
-        println("You don't have that many chips. Please enter a value between 5 and " + player.chips + ".")
+        println("You don't have that many chips. You have " + player.chips + ".")
         println
         betHandler
       } else {
-        println("Excuse me? Please enter a value between 5 and " + player.chips + ".")
+        println("Excuse me? Use your " + player.chips + " chips to bet.")
         println
         betHandler
       }
