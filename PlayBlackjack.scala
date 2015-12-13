@@ -15,15 +15,15 @@ object PlayBlackjack {
 
 
 class Blackjack {
-  var gameDeck = new Deck
-  var player = new Player
-  var dealer = new Dealer
+  private var gameDeck = new Deck
+  private var player = new Player
+  private var dealer = new Dealer
 
-  var firstGame = true
-  var dealerAdvantage = false
-  var playerStands = false
-  var betsAreDone = false
-  var pot = 0
+  private var firstGame = true
+  private var dealerAdvantage = false
+  private var playerStands = false
+  private var betsAreDone = false
+  private var pot = 0
 
   /**
    * Alustaa uuden pelin tai käden. Jos peli on jo alkanut, jaetaan uusi käsi vanhasta pakasta.
@@ -110,7 +110,7 @@ class Blackjack {
           player.chips -= chipsBet
           pot += chipsBet
           betsAreDone = true
-          println("Pot is now " + pot + ".")
+          println("Pot is now " + pot + ". (You have " + player.chips + " chips left.)")
           println("-----------------------------------------")
         }
       } else if (chipsBet > player.chips){
@@ -221,12 +221,12 @@ class Blackjack {
     }
     if (gameIsOn){
       evaluateHands
-      if (playerMaxValue == 21) {
+      if (maxValue(player) == 21) {
         println("Blackjack! You win!")
         println("-----------------------------------------")
         winHandler(true)
         endGame
-      } else if (dealerMaxValue == 21) {
+      } else if (maxValue(dealer) == 21) {
         println("Blackjack! Dealer wins!")
         println("-----------------------------------------")
         winHandler(false)
@@ -283,11 +283,11 @@ class Blackjack {
         }
       }
     } else {
-      if (dealerMaxValue > 21){
+      if (maxValue(dealer) > 21){
         println("Dealer busts with " + dealer.trueHandTotal + "! You win!")
         println("-----------------------------------------")
         winHandler(true)
-      } else if (playerMaxValue > 21){
+      } else if (maxValue(player) > 21){
         println("You bust with " + player.trueHandTotal + "!")
         println("-----------------------------------------")
         winHandler(false)
@@ -303,7 +303,7 @@ class Blackjack {
    * @.post	dealerAdvantage == true, jos jakajalla isompi tai yhtäsuuri käsi; muuten dealerAdvantage == false
    */
   def evaluateHands {
-    if (dealerMaxValue >= playerMaxValue){
+    if (maxValue(dealer) >= maxValue(player)){
       dealerAdvantage = true
     } else {
       dealerAdvantage = false
@@ -312,17 +312,10 @@ class Blackjack {
 
   /**
    * Kutsufunktio oikean maksimiarvon päättelemiseksi.
-   * @.pre	dealer.handTotalMinor != null & dealer.handTotal != null
+   * @.pre	participant.handTotalMinor != null & participant.handTotal != null
    * @.post	RESULT == (suurempi arvo kahdesta)
    */
-  def dealerMaxValue = { maxAcceptedValue(dealer.handTotalMinor, dealer.handTotal) }
-
-  /**
-   * Kutsufunktio oikean maksimiarvon päättelemiseksi.
-   * @.pre	player.handTotalMinor != null & player.handTotal != null
-   * @.post	RESULT == (suurempi arvo kahdesta)
-   */
-  def playerMaxValue = { maxAcceptedValue(player.handTotalMinor, player.handTotal) }
+  def maxValue(participant: Participant) = { maxAcceptedValue(participant.handTotalMinor, participant.handTotal) }
 
   /**
    * Palauttaa validin maksimiarvon kahdesta kokonaislukuparametrista. Ässäkortin takia
