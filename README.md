@@ -19,4 +19,3 @@ Commands in Blackjack:
 -
 - When asked a yes/no question you can answer: 'yes', 'YES', 'y', 'Y' or 'no', 'NO', 'n', 'N'
 - When asked a hit/stand question you can answer: 'hit', 'HIT', 'h', 'H' or 'stand', 'STAND', 's', 'S'
-- When the hand has been played and the console asks if you'd like to play again, you can cash out the chips in your pot by answering: 'cashout', 'CASHOUT', 'c', 'C'
