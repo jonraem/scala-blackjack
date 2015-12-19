@@ -8,7 +8,6 @@ object PlayBlackjack {
   def main(args: Array[String]) {
     var game = new Blackjack
     println("Welcome to Blackjack! You have 100 chips.")
-    println("-----------------------------------------")
     game.newGame
   }
 }
@@ -31,7 +30,9 @@ class Blackjack {
    * @.post	true
    */
   def displayHandScore {
+    evaluateHands
     Thread.sleep(1000)
+    println("-----------------------------------------")
     println("Dealer's hand: " + dealer.getHand.mkString(", "))
     print("               Total score: ")
     displayCorrectValue(dealer)
@@ -39,7 +40,6 @@ class Blackjack {
     println("Player's hand: " + player.getHand.mkString(", "))
     print("               Total score: ")
     displayCorrectValue(player)
-    println("-----------------------------------------")
   }
 
   /**
@@ -63,8 +63,9 @@ class Blackjack {
 	 * @.post	true
 	 */
    def displayChips {
+     Thread.sleep(1000)
+     println("-----------------------------------------")
      println("You have " + player.chips + " chips in hand.")
-     println
    }
 
    /**
@@ -74,7 +75,7 @@ class Blackjack {
     * @.post	dealerAdvantage == true, jos jakajalla isompi tai yhtäsuuri käsi; muuten dealerAdvantage == false
     */
    def evaluateHands {
-     if (maxValue(dealer) >= maxValue(player)){
+     if (dealer.maxValue >= player.maxValue){
        dealerAdvantage = true
      } else {
        dealerAdvantage = false
@@ -82,34 +83,11 @@ class Blackjack {
    }
 
    /**
-    * Funktio oikean maksimiarvon päättelemiseksi.
-    * @.pre		participant.aceInGame != null & participant.displayCase != null & participant.handTotal != null &
-    * 				participant.handTotalMinor != null & participant.trueHandTotal != null
-    * @.post	participant.displayCase == (1 || 2 || 3)
-    * 				RESULT == (participant.trueHandTotal)
-    */
-   def maxValue(participant: Participant): Int = {
-    if (participant.aceInGame && participant.handTotalMinor < participant.handTotal && participant.handTotal != 21){
-      if (participant.handTotal > 21) {
-        participant.trueHandTotal = participant.handTotalMinor
-        participant.displayCase = 1
-      } else {
-        participant.trueHandTotal = participant.handTotal
-        participant.displayCase = 3
-      }
-    } else {
-      participant.trueHandTotal = participant.handTotal
-      participant.displayCase = 2
-    }
-    participant.trueHandTotal
-  }
-
-   /**
     * Tarkistaa, ettei pelaajan tai jakajan käsi ole yli 21 ja palauttaa siitä boolean-arvon.
     * @.pre	dealer.handTotalMinor != null & player.handTotalMinor != null
     * @.post	RESULT == (true, jos kummankaan käden kokonaispistemäärä ei ylitä 21; muuten false)
     */
-   def gameIsOn: Boolean = { if (dealer.handTotalMinor > 21 || player.handTotalMinor > 21) { false } else { true } }
+   def gameIsOn: Boolean = { if (dealer.trueHandTotal > 21 || player.trueHandTotal > 21) { false } else { true } }
 
    /**
     * Tarkistaa voittoehdot ja kysyy tarvittavat kysymykset pelin etenemisen kannalta.
@@ -122,82 +100,66 @@ class Blackjack {
     * 				Pelaajan standatessa: playerStands == true
     */
    def gameIteration {
-     Thread.sleep(1000)
+     evaluateHands
      if (!betsAreDone){
        betHandler
      }
      if (gameIsOn){
-       evaluateHands
-       if (maxValue(player) == 21) {
+       Thread.sleep(1000)
+       println("-----------------------------------------")
+       if (player.maxValue == 21) {
          println("Blackjack! Player wins!")
-         println("-----------------------------------------")
          winHandler(true)
          endGame
-       } else if (maxValue(dealer) == 21) {
+       } else if (dealer.maxValue == 21) {
          println("Blackjack! Dealer wins!")
-         println("-----------------------------------------")
          winHandler(false)
          endGame
        }
        if (!playerStands){
          var line = readLine("Would you like to hit or stand? ")
+         Thread.sleep(1000)
          println("-----------------------------------------")
          if (line.toLowerCase == "h" || line.toLowerCase == "hit"){
            player.takeNewCard(gameDeck)
            println("Player takes a new card.")
-           println("-----------------------------------------")
-           evaluateHands
            displayHandScore
            gameIteration
          } else if (line.toLowerCase == "s" || line.toLowerCase == "stand"){
            println("Player stands.")
-           println("-----------------------------------------")
            playerStands = true
            gameIteration
          } else {
            println("Excuse me? Answer 'hit' or 'stand'.")
-           println
            gameIteration
          }
        } else {
-         if ((dealer.handTotal < 17 || dealer.handTotalMinor < 17)){
-           if (!dealerAdvantage){
-             println("Dealer takes a new card.")
-             println("-----------------------------------------")
-             dealer.takeNewCard(gameDeck)
-             evaluateHands
-             displayHandScore
-             gameIteration
-           } else {
-             println("Dealer stands.")
-             println("-----------------------------------------")
-             Thread.sleep(1000)
-             println("Dealer wins with " + dealer.trueHandTotal + "!")
-             println("-----------------------------------------")
-           }
+         if ((dealer.trueHandTotal < 17)){
+           dealer.takeNewCard(gameDeck)
+           println("Dealer takes a new card.")
+           displayHandScore
+           gameIteration
          } else {
            println("Dealer stands.")
-           println("-----------------------------------------")
            Thread.sleep(1000)
+           println("-----------------------------------------")
            if (dealerAdvantage){
              println("Dealer wins with " + dealer.trueHandTotal + "!")
-             println("-----------------------------------------")
              winHandler(false)
            } else {
              println("Player wins with " + player.trueHandTotal + "!")
-             println("-----------------------------------------")
              winHandler(true)
            }
          }
        }
      } else {
-       if (maxValue(dealer) > 21){
+       Thread.sleep(1000)
+       println("-----------------------------------------")
+       if (dealer.maxValue > 21){
          println("Dealer busts with " + dealer.trueHandTotal + "! You win!")
-         println("-----------------------------------------")
          winHandler(true)
-       } else if (maxValue(player) > 21){
+       } else if (player.maxValue > 21){
          println("Player busts with " + player.trueHandTotal + "!")
-         println("-----------------------------------------")
          winHandler(false)
        }
      }
@@ -211,26 +173,26 @@ class Blackjack {
    *        Jos poikkeusta ei heitetä: retry == false
    */
   def betHandler {
-    Thread.sleep(1000)
     var chipsBet = 0
+    Thread.sleep(1000)
+    println("-----------------------------------------")
     if (player.chips + pot < 5){
       println("You don't seem to have enough chips.")
       println
       var chipsLine = readLine("We're fair here. Would you like some more? ")
+      Thread.sleep(1000)
       println("-----------------------------------------")
       if (chipsLine.toLowerCase == "y" || chipsLine.toLowerCase == "yes"){
         player.chips += 100
         println("Here you go. 100 more chips to play with.")
-        println("-----------------------------------------")
         Thread.sleep(1000)
-        println("You have " + player.chips + " chips in hand now.")
         println("-----------------------------------------")
+        println("You have " + player.chips + " chips in hand now.")
         betHandler
       } else if (chipsLine.toLowerCase == "n" || chipsLine.toLowerCase == "no"){
         endGame
       } else {
         println("Excuse me? Answer 'yes' or 'no'.")
-        println
         betHandler
         }
     } else {
@@ -245,6 +207,7 @@ class Blackjack {
           case e: NumberFormatException => errorHandler(e)
         }
       }
+      Thread.sleep(1000)
       println("-----------------------------------------")
       if (chipsBet <= player.chips){
         if (chipsBet + pot < 5) {
@@ -256,11 +219,9 @@ class Blackjack {
           pot += chipsBet
           betsAreDone = true
           println("Pot is now " + pot + ". (You have " + player.chips + " chips left.)")
-          println("-----------------------------------------")
         }
       } else if (chipsBet > player.chips){
-        println("You don't have that many chips. You have " + player.chips + ".")
-        println
+        println("You don't have that many chips. You only have " + player.chips + ".")
         betHandler
       } else {
         println("Excuse me? Use your " + player.chips + " chips to bet.")
@@ -276,19 +237,22 @@ class Blackjack {
    * @.post true
    */
   def endGame {
-    Thread.sleep(1000)
     displayChips
-    var endLine = readLine("Would you still like to play? ")
+    Thread.sleep(1000)
     println("-----------------------------------------")
+    var endLine = readLine("Would you still like to play? ")
     if (endLine.toLowerCase == "y" || endLine.toLowerCase == "yes"){
       newGame
     } else if (endLine.toLowerCase == "n" || endLine.toLowerCase == "no"){
+      Thread.sleep(1000)
+      println
       println("OK. Goodbye!")
       Thread.sleep(1000)
       System.exit(0)
     } else {
-      println("Excuse me? Answer 'yes' or 'no'.")
+      Thread.sleep(1000)
       println("-----------------------------------------")
+      println("Excuse me? Answer 'yes' or 'no'.")
       endGame
     }
   }
@@ -302,9 +266,9 @@ class Blackjack {
    def winHandler(win: Boolean){
      if (win){
        Thread.sleep(1000)
+       println("-----------------------------------------")
        pot *= 2
        println("You won " + pot + " chips!")
-       println("-----------------------------------------")
        player.chips += pot
        pot = 0
      } else {
@@ -503,6 +467,9 @@ abstract class Participant {
     }
     handTotal = 0
     handTotalMinor = 0
+    trueHandTotal = 0
+    aceInGame = false
+    aceValueRedacted = false
     takeNewCard(deck)
     takeNewCard(deck)
   }
@@ -516,6 +483,29 @@ abstract class Participant {
     var newCard = deck.takeOneCard
     addToTotal(valueToHandTotal(newCard.getValue))
     hand += newCard
+  }
+
+   /**
+    * Funktio oikean maksimiarvon päättelemiseksi.
+    * @.pre		this.aceInGame != null & this.displayCase != null & this.handTotal != null &
+    * 				this.handTotalMinor != null & this.trueHandTotal != null
+    * @.post	this.displayCase == (1 || 2 || 3)
+    * 				RESULT == (this.trueHandTotal)
+    */
+   def maxValue(): Int = {
+    if (this.aceInGame && this.handTotalMinor < this.handTotal && this.handTotal != 21){
+      if (this.handTotal > 21) {
+        this.trueHandTotal = this.handTotalMinor
+        this.displayCase = 1
+      } else {
+        this.trueHandTotal = this.handTotal
+        this.displayCase = 3
+      }
+    } else {
+      this.trueHandTotal = this.handTotal
+      this.displayCase = 2
+    }
+    this.trueHandTotal
   }
 
   /**
@@ -533,6 +523,8 @@ abstract class Participant {
         aceValueRedacted = true
       }
   }
+
+
 
   /**
    * Palauttaa oikean kokonaislukuarvon kortin indeksiin (luokan Card cardValue) verrattuna.
